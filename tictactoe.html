@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Tic Tac Toe - Something you never see</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        /* ============ DIMENSION SELECTOR PAGE ============ */
+        #dimensionPage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .dimension-container {
+            background: #1a1a1a;
+            border-radius: 30px;
+            padding: 50px 60px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 2px solid #333;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .dimension-container h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dimension-container .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .dimension-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .dimension-btn {
+            padding: 18px;
+            border: 2px solid #333;
+            border-radius: 15px;
+            background: #111;
+            color: #fff;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+
+        .dimension-btn:hover {
+            border-color: #667eea;
+            background: #1a1a2e;
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .dimension-btn:active {
+            transform: scale(0.98);
+        }
+
+        .dimension-btn .size {
+            font-size: 1.5em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .dimension-btn .desc {
+            font-size: 0.8em;
+            color: #888;
+            font-weight: 400;
+        }
+
+        .dimension-btn .roast-preview {
+            font-size: 0.7em;
+            color: #667eea;
+            margin-top: 8px;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        /* ============ GAME PAGE ============ */
+        #gamePage {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .game-left {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-right {
+            flex: 0 0 380px;
+            min-width: 300px;
+            max-width: 450px;
+            height: 600px;
+            background: #1a1a1a;
+            border-radius: 20px;
+            border: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ============ BOARD ============ */
+        .board-header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .board-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .board-header .turn-indicator {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .board-header .turn-indicator span {
+            font-weight: 700;
+        }
+
+        .board-wrapper {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 20px;
+            border: 2px solid #333;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .board {
+            display: grid;
+            gap: 4px;
+            aspect-ratio: 1;
+            background: #000;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 6px;
+            font-size: 3em;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #000;
+            user-select: none;
+        }
+
+        .cell:hover:not(.filled):not(.game-over) {
+            background: #f0f0f0;
+            transform: scale(1.02);
+        }
+
+        .cell.filled, .cell.game-over {
+            cursor: not-allowed;
+        }
+
+        .cell.X {
+            color: #667eea;
+        }
+
+        .cell.O {
+            color: #764ba2;
+        }
+
+        .cell.winning {
+            background: #2e7d32 !important;
+            color: #fff !important;
+            animation: pulse 0.5s ease-in-out 3;
+        }
+
+        .cell.losing {
+            background: #c62828 !important;
+            color: #fff !important;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        /* ============ SCOREBOARD ============ */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 500px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #1a1a1a;
+            border-radius: 15px;
+            border: 2px solid #333;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-item .label {
+            font-size: 0.8em;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .score-item .value {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .score-item .value.X-color {
+            color: #667eea;
+        }
+
+        .score-item .value.O-color {
+            color: #764ba2;
+        }
+
+        .score-item .value.tie-color {
+            color: #ffd700;
+        }
+
+        /* ============ CHAT / ROAST SECTION ============ */
+        .chat-header {
+            padding: 18px 20px;
+            background: #222;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            font-size: 1.1em;
+            color: #fff;
+        }
+
+        .chat-header .ai-badge {
+            background: #667eea;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .chat-message {
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 95%;
+            animation: slideIn 0.3s ease-out;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-message.ai {
+            background: #2a1a3a;
+            border-left: 3px solid #764ba2;
+            align-self: flex-start;
+            color: #d4c4e8;
+        }
+
+        .chat-message.ai .sender {
+            color: #764ba2;
+            font-weight: 600;
+            font-size: 0.8em;
+            margin-bottom: 4px;
+        }
+
+        .chat-message.system {
+            background: #1a2a2a;
+            border-left: 3px solid #ffd700;
+            align-self: center;
+            color: #c4d4d4;
+            font-size: 0.85em;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .chat-message.player-win {
+            background: #1a2a1a;
+            border-left: 3px solid #4caf50;
+            align-self: flex-start;
+            color: #a8d8a8;
+        }
+
+        .chat-message.ai-win {
+            background: #2a1a1a;
+            border-left: 3px solid #f44336;
+            align-self: flex-start;
+            color: #d8a8a8;
+        }
+
+        .chat-message.tie {
+            background: #2a2a1a;
+            border-left: 3px solid #ffd700;
+            align-self: flex-start;
+            color: #d8d4a8;
+        }
+
+        .chat-message .timestamp {
+            font-size: 0.6em;
+            color: #666;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .chat-footer {
+            padding: 15px 20px;
+            border-top: 2px solid #333;
+            background: #111;
+        }
+
+        .chat-footer .status-text {
+            color: #888;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .chat-footer .status-text .highlight {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* ============ CONTROLS ============ */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 900px) {
+            #gamePage {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .game-right {
+                flex: none;
+                width: 100%;
+                max-width: 500px;
+                height: 400px;
+            }
+
+            .game-left {
+                width: 100%;
+                max-width: 500px;
+            }
+
+            .dimension-container {
+                padding: 30px 25px;
+                margin: 20px;
+            }
+
+            .dimension-container h1 {
+                font-size: 2em;
+            }
+
+            .board-wrapper {
+                padding: 15px;
+            }
+
+            .cell {
+                font-size: 2em;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .cell {
+                font-size: 1.5em;
+            }
+
+            .game-right {
+                height: 350px;
+            }
+
+            .scoreboard {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .controls .btn {
+                min-width: 80px;
+                font-size: 0.8em;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============ DIMENSION SELECTOR PAGE ============ -->
+    <div id="dimensionPage">
+        <div class="dimension-container">
+            <h1>🎮 Tic Tac Toe</h1>
+            <p class="subtitle">Choose your battlefield. The AI is ready to roast you.</p>
+            
+            <div class="dimension-options">
+                <button class="dimension-btn" onclick="startGame(3)">
+                    <span class="size">3x3</span>
+                    <span class="desc">Classic mode. Perfect for beginners.</span>
+                    <span class="roast-preview">"I've beaten 3x3 in my sleep."</span>
+                </button>
+                
+                <button class="dimension-btn" onclick="startGame(4)">
+                    <span class="size">4x4</span>
+                    <span class="desc">More space. More ways to lose.</span>
+                    <span class="roast-preview">"Four dimensions of disappointment."</span>
+                </button>
+                
+                <button class="dimension-btn" onclick="startGame(5)">
+                    <span class="size">5x5</span>
+                    <span class="desc">Big board. Big mistakes.</span>
+                    <span class="roast-preview">"Five lines. Zero chance."</span>
+                </button>
+            </div>
+            
+            <div style="color: #555; font-size: 0.8em; margin-top: 10px;">
+                ⚡ You are <span style="color:#667eea;">X</span> • AI is <span style="color:#764ba2;">O</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ GAME PAGE ============ -->
+    <div id="gamePage">
+        <!-- LEFT SIDE: Board -->
+        <div class="game-left">
+            <div class="board-header">
+                <h2>⚔️ Battlefield</h2>
+                <div class="turn-indicator">
+                    <span id="turnText">Your turn</span>
+                </div>
+            </div>
+
+            <div class="board-wrapper">
+                <div class="board" id="board"></div>
+            </div>
+
+            <div class="scoreboard">
+                <div class="score-item">
+                    <div class="label">You (X)</div>
+                    <div class="value X-color" id="humanScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="label">Ties</div>
+                    <div class="value tie-color" id="tieScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="label">AI (O)</div>
+                    <div class="value O-color" id="computerScore">0</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="resetGame()">🔄 New Game</button>
+                <button class="btn btn-secondary" onclick="resetScores()">📊 Reset Scores</button>
+                <button class="btn btn-danger" onclick="goBackToMenu()">🏠 Menu</button>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Chat / Roast Section -->
+        <div class="game-right">
+            <div class="chat-header">
+                <h3>🤖 AI Roast Chamber</h3>
+                <span class="ai-badge">Live</span>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message system">
+                    ⚡ The AI is ready to roast you. Good luck!
+                </div>
+            </div>
+            <div class="chat-footer">
+                <div class="status-text" id="gameStatus">
+                    <span class="highlight">●</span> Waiting for your move...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // ============ COMPLETE GAME LOGIC WITH SLEDGING ============
+        // ============================================================
+
+        // ============ SLEDGING LISTS ============
+        const AI_WIN_LINES = [
+            "You ignored the diagonal. I appreciate the donation.",
+            "You had one job: block me.",
+            "Three in a row. You watched every move happen.",
+            "You defended the wrong square. Outstanding.",
+            "The center was yours. You handed it to me.",
+            "You spent three turns setting up... my victory.",
+            "I didn't outplay you. You outplayed yourself.",
+            "That corner move? That's where the game ended.",
+            "You blocked yesterday's threat, not today's.",
+            "Every move you made increased my chances.",
+            "You saw the trap... and walked into it anyway.",
+            "Your board awareness is under maintenance.",
+            "You gave me a fork. Thanks for the two free wins.",
+            "The winning move was screaming. You wore earplugs.",
+            "You protected empty squares better than yourself.",
+            "I only needed one mistake. You gave me five.",
+            "You looked at the board and still chose wrong.",
+            "I didn't predict you. You became predictable.",
+            "Your X's were decorations. Mine were a strategy.",
+            "Next game, try playing against me instead of helping me."
+        ];
+
+        const PLAYER_WIN_LINES = [
+            "One lucky line. Don't mistake it for intelligence.",
+            "Even a perfect AI allows one bug report.",
+            "Congratulations. Probability filed a complaint.",
+            "You won because I respected your confidence too much.",
+            "Enjoy this victory. It's statistically expensive.",
+            "The board carried you harder than your strategy.",
+            "You found my only blind spot. Impressive accident.",
+            "Celebrate quickly. Reality updates next round.",
+            "Your confidence increased. Your skill stayed the same.",
+            "Even calculators misclick sometimes.",
+            "You finally placed a useful mark.",
+            "I underestimated how unpredictable bad moves can be.",
+            "You survived my mistake. Don't call it mastery.",
+            "That wasn't genius. That was good timing.",
+            "I'll archive this as a rare system error.",
+            "You've earned exactly one smile.",
+            "Your win streak begins... and ends here.",
+            "Take a screenshot. History won't repeat itself.",
+            "One victory doesn't rewrite the scoreboard.",
+            "Congratulations. The tutorial just beat the boss once."
+        ];
+
+        const TIE_LINES = [
+            "Nine moves. Zero winners.",
+            "Congratulations. We both avoided greatness.",
+            "This board deserves better players.",
+            "You couldn't beat me. I couldn't be bothered.",
+            "You defended your mistakes perfectly.",
+            "A draw. The safest way to admit defeat.",
+            "Neither of us blinked. You just forgot to win.",
+            "The replay button deserves more excitement.",
+            "You escaped. That's not the same as succeeding.",
+            "This match had more empty threats than winning moves.",
+            "You played not to lose. Mission accomplished.",
+            "Your strategy peaked at 'don't lose immediately.'",
+            "You survived because the board ran out of squares.",
+            "Nine moves of hesitation.",
+            "This wasn't a battle. It was paperwork.",
+            "The board filled up before your ideas did.",
+            "We tied. My standards still won.",
+            "No champion. Just unfinished business.",
+            "A draw is victory's waiting room.",
+            "You delayed defeat. That's all."
+        ];
+
+        const GAME_LINES = [
+            "You're one move away from becoming my highlight reel.",
+            "That square looked safe... until now.",
+            "Ignore the center again. I dare you.",
+            "Your next move decides whether this stays competitive.",
+            "Every second you think, I see another mistake.",
+            "You're staring at the trap instead of avoiding it.",
+            "Keep chasing corners. I'll keep chasing victories.",
+            "The diagonal called. You ignored it.",
+            "I already know where you're placing that mark.",
+            "You're solving my puzzle for me.",
+            "That move creates exactly one thing: my opportunity.",
+            "You think one move ahead. I think until you're out of moves.",
+            "Your confidence is bigger than your board vision.",
+            "One block saves the game. Let's see if you find it.",
+            "That square is bait.",
+            "You're defending the past instead of the future.",
+            "Every move narrows your options. Mine don't.",
+            "You're playing the board. I'm playing you.",
+            "I almost feel bad for what's about to happen.",
+            "Take your time. My winning line isn't going anywhere."
+        ];
+
+        const RARE_LINES = [
+            "You weren't my opponent. You were my tutorial.",
+            "I didn't defeat you. Your last move did.",
+            "I've seen loading screens with better decision-making.",
+            "The board tried to warn you.",
+            "I won the moment you ignored the center.",
+            "If mistakes were points, you'd be undefeated.",
+            "Every X you placed helped me find the perfect O.",
+            "You're not losing to an AI. You're losing to your own decisions.",
+            "You call it strategy. I call it evidence.",
+            "Reset the board. You can't reset that last move."
+        ];
+
+        const OPENING_LINES = [
+            "Ready to lose? Let's begin.",
+            "I've already calculated your defeat.",
+            "Your first move decides everything. Choose wisely.",
+            "I hope you're better than your last opponent.",
+            "Let's see how many moves you survive.",
+            "The board is set. Your dignity isn't."
+        ];
+
+        const MISTAKE_LINES = [
+            "Interesting choice... for losing.",
+            "You sure about that?",
+            "I would have chosen differently. That's why I'm winning.",
+            "A bold strategy. Let's see how it fails.",
+            "You're making this too easy.",
+            "I can already see where this is going.",
+            "That move will cost you.",
+            "Are you even looking at the board?",
+            "I don't think you thought that through.",
+            "That's... one way to lose faster."
+        ];
+
+        // ============ GAME STATE ============
+        let dimension = 3;
+        let board = [];
+        let gameActive = true;
+        let isComputerTurn = false;
+        let humanScore = 0;
+        let computerScore = 0;
+        let tieScore = 0;
+        let winningCells = [];
+        let moveCount = 0;
+        let humanMoveCount = 0;
+
+        // ============ DOM REFS ============
+        const boardElement = document.getElementById('board');
+        const chatMessages = document.getElementById('chatMessages');
+        const gameStatus = document.getElementById('gameStatus');
+        const turnText = document.getElementById('turnText');
+
+        // ============ CORE GAME LOGIC (FIXED VERSION) ============
+        function checkWinner(board, isMaximizing) {
+            // Check rows for complete lines
+            for (let i = 0; i < dimension; i++) {
+                if (rowChecker(board, i)) {
+                    if (board[i][0] === 'X') return 'X';
+                    else if (board[i][0] === 'O') return 'O';
+                }
+            }
+
+            // Check columns for complete lines
+            for (let i = 0; i < dimension; i++) {
+                if (colChecker(board, i)) {
+                    if (board[0][i] === 'X') return 'X';
+                    else if (board[0][i] === 'O') return 'O';
+                }
+            }
+
+            // Check main diagonal - FIXED: Check if board[0][0] is not 0 first
+            if (board[0][0] !== 0) {
+                let check = true;
+                for (let i = 0; i < dimension; i++) {
+                    if (board[i][i] === 0 || board[i][i] !== board[0][0]) {
+                        check = false;
+                        break;
+                    }
+                }
+                if (check) return board[0][0];
+            }
+
+            // Check anti-diagonal - FIXED: Check if board[0][dimension-1] is not 0 first
+            if (board[0][dimension - 1] !== 0) {
+                let check = true;
+                for (let i = 0; i < dimension; i++) {
+                    if (board[dimension - 1 - i][i] === 0 || board[dimension - 1 - i][i] !== board[0][dimension - 1]) {
+                        check = false;
+                        break;
+                    }
+                }
+                if (check) return board[0][dimension - 1];
+            }
+
+            // Check if board is FULL
+            let isFull = true;
+            for (let i = 0; i < dimension; i++) {
+                for (let j = 0; j < dimension; j++) {
+                    if (board[i][j] === 0) {
+                        isFull = false;
+                        break;
+                    }
+                }
+                if (!isFull) break;
+            }
+            if (isFull) return 'TIE';
+
+            return null;
+        }
+
+        function rowChecker(board, row) {
+            const first = board[row][0];
+            if (first === 0) return false;
+            for (let j = 0; j < dimension; j++) {
+                if (board[row][j] !== first) return false;
+            }
+            return true;
+        }
+
+        function colChecker(board, col) {
+            const first = board[0][col];
+            if (first === 0) return false;
+            for (let i = 0; i < dimension; i++) {
+                if (board[i][col] !== first) return false;
+            }
+            return true;
+        }
+
+        // ============ IMPROVED MINIMAX WITH DEPTH LIMIT ============
+        function minimax(board, depth, isMaximizing, maxDepth) {
+            // FIX: Pass isMaximizing to checkWinner
+            const result = checkWinner(board, isMaximizing);
+
+            if (result === 'X') return [-1 - depth, null];  // FIX: Prefer faster losses
+            if (result === 'O') return [1 + depth, null];   // FIX: Prefer faster wins
+            if (result === 'TIE') return [0, null];
+
+            // Depth limit for larger boards
+            if (depth >= maxDepth) {
+                return [evaluateBoard(board), null];
+            }
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                let bestMove = null;
+
+                for (let i = 0; i < dimension; i++) {
+                    for (let j = 0; j < dimension; j++) {
+                        if (board[i][j] === 0) {
+                            board[i][j] = 'O';
+                            const [score] = minimax(board, depth + 1, false, maxDepth);
+                            board[i][j] = 0;
+
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestMove = [i, j];
+                            }
+                        }
+                    }
+                }
+                return [bestScore, bestMove];
+            } else {
+                let bestScore = Infinity;
+                let bestMove = null;
+
+                for (let i = 0; i < dimension; i++) {
+                    for (let j = 0; j < dimension; j++) {
+                        if (board[i][j] === 0) {
+                            board[i][j] = 'X';
+                            const [score] = minimax(board, depth + 1, true, maxDepth);
+                            board[i][j] = 0;
+
+                            if (score < bestScore) {
+                                bestScore = score;
+                                bestMove = [i, j];
+                            }
+                        }
+                    }
+                }
+                return [bestScore, bestMove];
+            }
+        }
+
+        // ============ HEURISTIC EVALUATION FOR DEPTH CUTOFF ============
+        function evaluateBoard(board) {
+            let score = 0;
+
+            // Check rows
+            for (let i = 0; i < dimension; i++) {
+                let xCount = 0, oCount = 0;
+                for (let j = 0; j < dimension; j++) {
+                    if (board[i][j] === 'X') xCount++;
+                    else if (board[i][j] === 'O') oCount++;
+                }
+                if (xCount > 0 && oCount === 0) score -= 10 - xCount;
+                if (oCount > 0 && xCount === 0) score += 10 - oCount;
+            }
+
+            // Check columns
+            for (let i = 0; i < dimension; i++) {
+                let xCount = 0, oCount = 0;
+                for (let j = 0; j < dimension; j++) {
+                    if (board[j][i] === 'X') xCount++;
+                    else if (board[j][i] === 'O') oCount++;
+                }
+                if (xCount > 0 && oCount === 0) score -= 10 - xCount;
+                if (oCount > 0 && xCount === 0) score += 10 - oCount;
+            }
+
+            // Check main diagonal
+            let xCount = 0, oCount = 0;
+            for (let i = 0; i < dimension; i++) {
+                if (board[i][i] === 'X') xCount++;
+                else if (board[i][i] === 'O') oCount++;
+            }
+            if (xCount > 0 && oCount === 0) score -= 10 - xCount;
+            if (oCount > 0 && xCount === 0) score += 10 - oCount;
+
+            // Check anti-diagonal
+            xCount = 0; oCount = 0;
+            for (let i = 0; i < dimension; i++) {
+                if (board[dimension - 1 - i][i] === 'X') xCount++;
+                else if (board[dimension - 1 - i][i] === 'O') oCount++;
+            }
+            if (xCount > 0 && oCount === 0) score -= 10 - xCount;
+            if (oCount > 0 && xCount === 0) score += 10 - oCount;
+
+            // Center control bonus
+            const center = Math.floor(dimension / 2);
+            if (board[center][center] === 'O') score += 3;
+            if (board[center][center] === 'X') score -= 3;
+
+            return score;
+        }
+
+        function getWinningCells() {
+            const cells = [];
+
+            for (let i = 0; i < dimension; i++) {
+                if (rowChecker(board, i)) {
+                    for (let j = 0; j < dimension; j++) cells.push([i, j]);
+                    return cells;
+                }
+            }
+
+            for (let i = 0; i < dimension; i++) {
+                if (colChecker(board, i)) {
+                    for (let j = 0; j < dimension; j++) cells.push([j, i]);
+                    return cells;
+                }
+            }
+
+            if (board[0][0] !== 0) {
+                let check = true;
+                for (let i = 0; i < dimension; i++) {
+                    if (board[i][i] === 0 || board[i][i] !== board[0][0]) {
+                        check = false;
+                        break;
+                    }
+                }
+                if (check) {
+                    for (let i = 0; i < dimension; i++) cells.push([i, i]);
+                    return cells;
+                }
+            }
+
+            if (board[0][dimension - 1] !== 0) {
+                let check = true;
+                for (let i = 0; i < dimension; i++) {
+                    if (board[dimension - 1 - i][i] === 0 || board[dimension - 1 - i][i] !== board[0][dimension - 1]) {
+                        check = false;
+                        break;
+                    }
+                }
+                if (check) {
+                    for (let i = 0; i < dimension; i++) cells.push([dimension - 1 - i, i]);
+                    return cells;
+                }
+            }
+
+            return cells;
+        }
+
+        // ============ SLEDGING HELPERS ============
+        function randomChoice(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function addChatMessage(text, type = 'ai') {
+            // Keep chat limited to 100 messages
+            while (chatMessages.children.length > 100) {
+                chatMessages.removeChild(chatMessages.firstChild);
+            }
+
+            const div = document.createElement('div');
+            div.className = `chat-message ${type}`;
+
+            if (type === 'ai') {
+                div.innerHTML = `<div class="sender">🤖 AI</div>${text}`;
+            } else if (type === 'system') {
+                div.textContent = text;
+            } else if (type === 'player-win') {
+                div.innerHTML = `<div class="sender">🎉 You</div>${text}`;
+            } else if (type === 'ai-win') {
+                div.innerHTML = `<div class="sender">💀 AI</div>${text}`;
+            } else if (type === 'tie') {
+                div.innerHTML = `<div class="sender">🤝 Draw</div>${text}`;
+            }
+
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sledgeOpening() {
+            addChatMessage(randomChoice(OPENING_LINES), 'ai');
+        }
+
+        function sledgeMidGame() {
+            if (Math.random() < 0.35) {
+                addChatMessage(randomChoice(GAME_LINES), 'ai');
+            }
+        }
+
+        function sledgeMistake() {
+            if (Math.random() < 0.5) {
+                addChatMessage(randomChoice(MISTAKE_LINES), 'ai');
+            }
+        }
+
+        function sledgeRareWin() {
+            addChatMessage(randomChoice(RARE_LINES), 'ai-win');
+        }
+
+        function isBadMove(row, col) {
+            const corners = [[0, 0], [0, dimension - 1], [dimension - 1, 0], [dimension - 1, dimension - 1]];
+            // Check based on human moves only
+            if (corners.some(([r, c]) => r === row && c === col) && dimension >= 4) {
+                return humanMoveCount < 3;
+            }
+            return false;
+        }
+
+        function shouldTriggerRare() {
+            let empty = 0;
+            for (let i = 0; i < dimension; i++) {
+                for (let j = 0; j < dimension; j++) {
+                    if (board[i][j] === 0) empty++;
+                }
+            }
+            return empty >= dimension * dimension - 4;
+        }
+
+        // ============ AI DIFFICULTY ============
+        function getAIMove() {
+            const emptyCells = [];
+            for (let i = 0; i < dimension; i++) {
+                for (let j = 0; j < dimension; j++) {
+                    if (board[i][j] === 0) emptyCells.push([i, j]);
+                }
+            }
+
+            if (emptyCells.length === 0) return null;
+
+            let maxDepth;
+            let usePerfectAI = true;
+
+            if (dimension === 3) {
+                maxDepth = 9;
+            } else if (dimension === 4) {
+                maxDepth = 4;
+                if (Math.random() < 0.3) {
+                    usePerfectAI = false;
+                }
+            } else {
+                maxDepth = 3;
+                if (Math.random() < 0.5) {
+                    usePerfectAI = false;
+                }
+            }
+
+            if (!usePerfectAI) {
+                return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+
+            // FIX: Pass correct isMaximizing value (true for computer's turn)
+            const [, bestMove] = minimax(board, 0, true, maxDepth);
+            return bestMove;
+        }
+
+        // ============ UI FUNCTIONS ============
+        function createBoard() {
+            board = [];
+            for (let i = 0; i < dimension; i++) {
+                board.push(new Array(dimension).fill(0));
+            }
+            gameActive = true;
+            isComputerTurn = false;
+            winningCells = [];
+            moveCount = 0;
+            humanMoveCount = 0;
+            updateBoard();
+            updateTurnText();
+            gameStatus.innerHTML = '<span class="highlight">●</span> Your turn! Make a move.';
+        }
+
+        function updateBoard() {
+            boardElement.style.gridTemplateColumns = `repeat(${dimension}, 1fr)`;
+            boardElement.innerHTML = '';
+
+            for (let i = 0; i < dimension; i++) {
+                for (let j = 0; j < dimension; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+
+                    const value = board[i][j];
+                    if (value !== 0) {
+                        cell.textContent = value;
+                        cell.classList.add('filled', value);
+                    }
+
+                    if (winningCells.some(([r, c]) => r === i && c === j)) {
+                        cell.classList.add('winning');
+                    }
+
+                    if (!gameActive || isComputerTurn || value !== 0) {
+                        cell.classList.add('game-over');
+                    } else {
+                        cell.onclick = () => handleHumanMove(i, j);
+                    }
+
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        function updateTurnText() {
+            if (!gameActive) {
+                turnText.textContent = 'Game Over';
+                return;
+            }
+            turnText.textContent = isComputerTurn ? 'AI is thinking...' : 'Your turn';
+            turnText.style.color = isComputerTurn ? '#764ba2' : '#667eea';
+        }
+
+        function updateScores() {
+            document.getElementById('humanScore').textContent = humanScore;
+            document.getElementById('computerScore').textContent = computerScore;
+            document.getElementById('tieScore').textContent = tieScore;
+        }
+
+        function handleGameResult(result) {
+            if (result === 'X') {
+                gameActive = false;
+                winningCells = getWinningCells();
+                updateBoard();
+                addChatMessage(randomChoice(PLAYER_WIN_LINES), 'player-win');
+                humanScore++;
+                updateScores();
+                gameStatus.innerHTML = '🎉 You won! Congratulations!';
+                updateTurnText();
+                return true;
+            } else if (result === 'O') {
+                gameActive = false;
+                winningCells = getWinningCells();
+                updateBoard();
+                if (shouldTriggerRare()) {
+                    sledgeRareWin();
+                } else {
+                    addChatMessage(randomChoice(AI_WIN_LINES), 'ai-win');
+                }
+                computerScore++;
+                updateScores();
+                gameStatus.innerHTML = '💀 AI wins! Better luck next time!';
+                updateTurnText();
+                return true;
+            } else if (result === 'TIE') {
+                gameActive = false;
+                addChatMessage(randomChoice(TIE_LINES), 'tie');
+                tieScore++;
+                updateScores();
+                gameStatus.innerHTML = '🤝 It\'s a tie!';
+                updateTurnText();
+                return true;
+            }
+            return false;
+        }
+
+        function handleHumanMove(row, col) {
+            if (!gameActive || isComputerTurn || board[row][col] !== 0) return;
+
+            board[row][col] = 'X';
+            moveCount++;
+            humanMoveCount++;
+
+            if (isBadMove(row, col)) {
+                sledgeMistake();
+            }
+
+            updateBoard();
+
+            // FIX: Pass correct isMaximizing value (false for human's turn)
+            const result = checkWinner(board, false);
+            if (handleGameResult(result)) return;
+
+            if (moveCount >= 2) {
+                sledgeMidGame();
+            }
+
+            isComputerTurn = true;
+            updateTurnText();
+            gameStatus.innerHTML = '<span style="color:#764ba2;">●</span> AI is calculating your destruction...';
+
+            const delay = dimension === 3 ? 400 : 600;
+            setTimeout(() => computerMove(), delay);
+        }
+
+        function computerMove() {
+            if (!gameActive) return;
+
+            const bestMove = getAIMove();
+
+            if (bestMove === null) {
+                addChatMessage(randomChoice(TIE_LINES), 'tie');
+                gameActive = false;
+                updateBoard();
+                updateTurnText();
+                tieScore++;
+                updateScores();
+                gameStatus.innerHTML = '🤝 Game Over - Tie!';
+                return;
+            }
+
+            const [row, col] = bestMove;
+            board[row][col] = 'O';
+            moveCount++;
+            isComputerTurn = false;
+            updateBoard();
+
+            // FIX: Pass correct isMaximizing value (true for computer's turn)
+            const result = checkWinner(board, true);
+            if (handleGameResult(result)) return;
+
+            gameStatus.innerHTML = '<span class="highlight">●</span> Your turn! Make a move.';
+            updateTurnText();
+        }
+
+        // ============ GAME CONTROL FUNCTIONS ============
+        function startGame(size) {
+            dimension = size;
+            document.getElementById('dimensionPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'flex';
+
+            chatMessages.innerHTML = '';
+            addChatMessage(`⚔️ ${size}x${size} board selected. Prepare for roast.`, 'system');
+
+            humanScore = 0;
+            computerScore = 0;
+            tieScore = 0;
+            updateScores();
+
+            createBoard();
+            sledgeOpening();
+            updateTurnText();
+
+            const difficultyMsg = dimension === 3 ? 'Playing at IMPOSSIBLE difficulty' :
+                                  dimension === 4 ? 'Playing at HARD difficulty' :
+                                  'Playing at MEDIUM difficulty';
+            addChatMessage(`🎯 ${difficultyMsg}`, 'system');
+        }
+
+        function resetGame() {
+            createBoard();
+            addChatMessage('🔄 New game started. Ready for more?', 'system');
+            if (Math.random() < 0.3) {
+                addChatMessage(randomChoice(OPENING_LINES), 'ai');
+            }
+            gameStatus.innerHTML = '<span class="highlight">●</span> Your turn! Make a move.';
+            updateTurnText();
+        }
+
+        function resetScores() {
+            humanScore = 0;
+            computerScore = 0;
+            tieScore = 0;
+            updateScores();
+            addChatMessage('📊 Scores have been reset. Starting fresh!', 'system');
+            resetGame();
+        }
+
+        function goBackToMenu() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('dimensionPage').style.display = 'flex';
+            chatMessages.innerHTML = '';
+            addChatMessage('⚡ The AI is ready to roast you. Good luck!', 'system');
+        }
+
+        // ============ INITIALIZATION ============
+        // Page starts with dimension selector visible
+    </script>
+</body>
+</html>
