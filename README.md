@@ -2,8 +2,6 @@
 
 A dynamic Tic Tac Toe game with a twist - the AI doesn't just beat you, it roasts you! Featuring 3x3, 4x4, and 5x5 boards with adaptive AI difficulty and a live trash-talking chat system.
 
-![Game Preview](https://via.placeholder.com/800x400/0a0a0a/667eea?text=Tic+Tac+Toe+AI+Roast+Edition)
-
 ## ✨ Features
 
 ### 🎯 Multiple Board Sizes
